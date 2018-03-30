@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="./../styles/w3.css">
+        <link rel="stylesheet" href="./../styles/custom.css">
+    </head>
+    <body class="w3-dark-grey">
+        <div style="height: 40px;">
+            <div class="w3-bar w3-black w3-card">
+                <button class="tab w3-bar-item w3-button" onclick="page.openTab('Design')">Design</button>
+                <button class="tab w3-bar-item w3-button" onclick="page.openTab('Simulate')">Simulate</button>
+            </div>
+        </div>
+        <div style="position: absolute; top:40px; bottom:0; left:0; right:0;">
+            <div id="Design" class="tab-pane">
+                
+            </div>
+            <div id="Simulate" class="tab-pane borderLayout max-height" style="display:none">
+                <div class="top w3-card w3-container">header</div>
+                <div class="left w3-card w3-container max-height">Left</div>
+                <div class="center max-height">Middle</div>
+                <div class="right w3-card w3-container max-height">Right</div>
+            </div>
+        </div>
+    </body>
+    <script>
+        const $ = require("jquery")(window);
+        const program = require("./../js/app.js");      
+        var page = new program.page();
+    </script>
+</html>

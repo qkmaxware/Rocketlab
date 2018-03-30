@@ -1,0 +1,41 @@
+.max-height {
+    height: 100%;
+}
+
+.max-width {
+    width: 100%;
+}
+
+.borderLayout {
+    display: table;  
+    width: 100%
+}
+
+.borderLayout .top {
+    display: table-row;
+    width: 100%;
+}
+
+.borderLayout .left {
+    display: table-cell;
+    vertical-align: top;
+    width: 10%;
+    min-width: 240px;
+}
+
+.borderLayout .center {
+    display: table-cell;
+    vertical-align: top;
+}
+  
+.borderLayout .right {
+    display: table-cell;
+    vertical-align: top;
+    width: 10%;
+    min-width: 240px;
+}
+  
+.borderLayout .bottom {
+    display: table-row; 
+    width: 100%;
+}
