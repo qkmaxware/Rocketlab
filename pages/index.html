@@ -4,28 +4,218 @@
         <link rel="stylesheet" href="./../styles/w3.css">
         <link rel="stylesheet" href="./../styles/custom.css">
     </head>
-    <body class="w3-dark-grey">
-        <div style="height: 40px;">
-            <div class="w3-bar w3-black w3-card">
-                <button class="tab w3-bar-item w3-button" onclick="page.openTab('Design')">Design</button>
-                <button class="tab w3-bar-item w3-button" onclick="page.openTab('Simulate')">Simulate</button>
-            </div>
+    <body class="w3-white">
+        <div class="w3-container w3-blue">
+            <h2>Simulate</h2>
         </div>
-        <div style="position: absolute; top:40px; bottom:0; left:0; right:0;">
-            <div id="Design" class="tab-pane">
-                
-            </div>
-            <div id="Simulate" class="tab-pane borderLayout max-height" style="display:none">
-                <div class="top w3-card w3-container">header</div>
-                <div class="left w3-card w3-container max-height">Left</div>
-                <div class="center max-height">Middle</div>
-                <div class="right w3-card w3-container max-height">Right</div>
-            </div>
+        <div class="w3-container w3-indigo">
+            <button class="w3-button" style="float:left;">Cancel</button>
+            <button class="w3-button" style="float:right;">Start</button>
         </div>
+        <br/>
+        <form class="w3-container">
+
+            <div class="w3-container w3-grey w3-border" onclick="showHide('rocket-settings');">
+                <h4>Rocket</h4>
+            </div>
+            <div id="rocket-settings" class="w3-container w3-border">
+                <div class="w3-row-padding">
+                    <label>Mass</label></br>
+                    <div class="w3-half">
+                        <input class="w3-input w3-border" type="text" name="rocket-mass" placeholder="mass">
+                    </div>
+                    <div class="w3-half">
+                        <select class="w3-select" name="rocket-mass-unit">
+                            <option value="kg">Kilograms (Kg)</option>
+                            <option value="g">Grams (g)</option>
+                            <option value="lbs">Pounds (lbs)</option>
+                        </select>
+                    </div>
+                </div>
+                <br/>
+            </div>
+
+            <div class="w3-container w3-grey w3-border" onclick="showHide('motor-settings');">
+                <h4>Motor</h4>
+            </div>
+            <div id="motor-settings">
+                <div class="w3-dark-grey" style="width:100%;">
+                    <button type="button" class="w3-button" onclick="loadEng();">
+                        Load Motor
+                    </button>
+                </div>
+                <div class="w3-container w3-border">
+                    <div class="w3-row-padding">
+                        <div class="w3-col m3">
+                            <label>Name</label></br>
+                            <input class="w3-input w3-border" type="text" name="name" placeholder="name">
+                        </div>
+                        <div class="w3-col m3">
+                            <label>Manufacturer</label></br>
+                            <input class="w3-input w3-border" type="text" name="manufacturer" placeholder="manufacturer">
+                        </div>
+                        <div class="w3-col m3">
+                            <label>Diameter (mm)</label></br>
+                            <input class="w3-input w3-border" type="text" name="diameter" placeholder="diameter">
+                        </div>
+                        <div class="w3-col m3">
+                            <label>Length (mm)</label></br>
+                            <input class="w3-input w3-border" type="text" name="length" placeholder="length">
+                        </div>
+                    </div>
+                    <div class="w3-row-padding">
+                        <label>Delay</label></br>
+                        <div class="w3-half">
+                            <input class="w3-input w3-border" type="text" name="delay" placeholder="delay">
+                        </div>
+                        <div class="w3-half">
+                            <select class="w3-select" name="delay-unit">
+                                <option value="s">Seconds (s)</option>
+                                <option value="ms">Miliseconds (ms)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="w3-row-padding">
+                        <label>Mass</label></br>
+                        <div class="w3-third">
+                            <input class="w3-input w3-border" type="text" name="eng-prop-mass" placeholder="propellant mass">
+                        </div>
+                        <div class="w3-third">
+                            <input class="w3-input w3-border" type="text" name="eng-total-mass" placeholder="total engine mass">
+                        </div>
+                        <div class="w3-third">
+                            <select class="w3-select" name="eng-mass-unit">
+                                <option value="kg">Kilograms (Kg)</option>
+                                <option value="g">Grams (g)</option>
+                                <option value="lbs">Pounds (lbs)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="w3-row-padding">
+                        <label>Thrust curve</label></br>
+                        <canvas id="thrust-curve" class="w3-half w3-border">
+
+                        </canvas>
+                        <div class="w3-half" style="max-height:200px; overflow:scroll;">
+                            <table id="thrust-table" class="w3-table w3-striped w3-bordered w3-hoverable">
+                                <tr class="w3-blue">
+                                    <th>Time</th>
+                                    <th>Thrust</th>
+                                    <th></th>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    <br/>
+                </div>
+            </div>
+            
+            <div class="w3-container w3-grey w3-border" onclick="showHide('quality-settings');">
+                <h4>Quality Settings</h4>
+            </div>
+            <div id="quality-settings" class="w3-container w3-border">
+                <div class="w3-row-padding">
+                    <label>Timestep (s)</label></br>
+                    <div class="w3-full">
+                        <input class="w3-input w3-border" type="text" name="rocket-mass" placeholder="timestep" value="0.01">
+                    </div>
+                </div>
+                <br/>
+            </div>
+
+        </form>
+
+        <br/>
     </body>
     <script>
-        const $ = require("jquery")(window);
-        const program = require("./../js/app.js");      
+        const $ = require("jquery");
+        const program = require("./../js/app.js");   
+        const eng_parser = require("./../js/eng_parser.js");
+        //const renderer = require("./../js/webgl.js");      
         var page = new program.page();
+
+        function showHide(div){
+            $("#"+div).toggle();
+        }
+
+        function drawThrustcurve(data){
+            //Clear table
+            var t = $("#thrust-table");
+            t.find("tr:gt(0)").remove()
+
+            var c = document.getElementById("thrust-curve");
+            var ctx = c.getContext("2d");
+            //Clear canvas
+            ctx.fillStyle = "#FFFFFF"
+            ctx.fillRect(0,0,c.width,c.height);
+            if(!data || data.length < 1){
+                return;
+            }
+            //Get bounds
+            var first = data[0];
+            var last = data[data.length - 1];
+            var minx = first.time;
+            var maxx = last.time;
+            var miny = first.thrust; var maxy = first.thrust;
+            for(var i = 0; i < data.length; i++){
+                if(data[i].thrust > maxy)
+                    maxy = data[i].thrust;
+                if(data[i].thrust < miny)
+                    miny = data[i].thrust;
+            }
+            //Draw curve
+            var first = true;
+            ctx.beginPath();
+            for(var i = 0; i < data.length; i++){
+                var point = data[i];
+                var x = point.time;
+                var y = point.thrust;
+
+                var screenX = c.width * ((x - minx) / (maxx - minx));
+                var screenY = c.height - c.height * ((y - miny) / (maxy - miny));
+
+                t.append('<tr><td>'+x+'</td><td>'+y+'</td><td></td></tr>');
+
+                if(first){
+                    ctx.moveTo(screenX, screenY);
+                    first = false;
+                }else{
+                    ctx.lineTo(screenX,screenY);
+                }
+            }
+            ctx.strokeStyle = "#f442b0";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        function loadEng(){
+            var file = page.browseFiles();
+            if(file && file.length > 0)
+            eng_parser.parseEnv(file[0], function(eng){
+                console.log(eng);
+                $("input[name=name]").val(eng.name);
+                $("input[name=manufacturer]").val(eng.manufacturer);
+                $("input[name=diameter]").val(eng.diameter);
+                $("input[name=length]").val(eng.length);
+                $("input[name=eng-prop-mass]").val(eng.propellantWeight);
+                $("input[name=eng-total-mass]").val(eng.totalWeight);
+                if(eng.delays.length > 0)
+                    $("input[name=delay]").val(eng.delays[0]);
+                
+                $("select[name=delay-unit]").val("s");
+                $("select[name=eng-mass-unit]").val("kg");
+
+                drawThrustcurve(eng.datapoints);
+            });
+        }
+
+        //Load up uv mapped sphere with texture
+        //var planetRenderer = new renderer.webgl(document.getElementById("renderer"));
+        //planetRenderer.loadObj('./../data/planet.obj', function(obj){
+            //planetRenderer.loadTextureMaterial('./../data/earth.png', function(mat){
+                //obj.material = mat;
+            //});
+        //});
+
     </script>
 </html>

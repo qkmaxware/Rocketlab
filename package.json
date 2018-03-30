@@ -3,8 +3,11 @@
   "version": "0.0.1",
   "description": "",
   "main": "entrypoint.js",
+  "gypfile": true,
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "build": "node-gyp build",
+    "install": "node-gyp rebuild"
   },
   "author": "Colin",
   "license": "MIT",

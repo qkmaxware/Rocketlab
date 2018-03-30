@@ -46,6 +46,11 @@ function Application(){
 
 function Page (){
 
+    this.browseFiles = function(){
+        var filename = electron.remote.dialog.showOpenDialog({properties: ['openFile', 'multiSelections']});
+        return filename;
+    }
+
     this.openTab = function(tab){
         var x = document.getElementsByClassName("tab-pane");
         for (var i = 0; i < x.length; i++) {
