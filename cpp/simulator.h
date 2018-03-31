@@ -27,8 +27,8 @@ struct vec3 {
 //Represents thrust vs time
 struct thrustcurve {
     int points;
-    double time[];
-    double thrust[];
+    double* time;
+    double* thrust;
     double evaluate(double t);
 };
 

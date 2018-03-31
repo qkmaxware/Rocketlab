@@ -2,7 +2,7 @@ const electron = require('electron');
 const path = require('path');
 const url = require('url');
 const $ = require("jquery");
-//const rocketcore = require('./../build/Release/rocketcore.node');
+const rocketcore = require('./../build/Release/rocketcore.node');
 
 function Application(){
 
@@ -15,7 +15,7 @@ function Application(){
     }
 
     this.showDebugMenu = function(){
-        windows.main.webContents.openDevTools()
+        windows.main.webContents.openDevTools();
     }
 
     this.showMainWindow = function(){
@@ -39,13 +39,18 @@ function Application(){
     }
 
     this.quit = function(){
-
+        electron.app.quit();
     }
 
     return this;
 }
 
 function Page (){
+
+    this.fireevent = function(){
+        var c = rocketcore.simulate();
+        console.log(c);
+    }
 
     this.browseFiles = function(){
         var filename = electron.remote.dialog.showOpenDialog({properties: ['openFile', 'multiSelections']});

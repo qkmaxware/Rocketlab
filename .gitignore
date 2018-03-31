@@ -1,5 +1,8 @@
 node_modules
 builds
+bin
 .vscode
+.vs
 build
 *.o
+.git

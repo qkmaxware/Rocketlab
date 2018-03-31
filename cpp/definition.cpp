@@ -1,15 +1,10 @@
 #include <nan.h>
-#include "async.h"
 #include "simulator.h"
-
-
-void runSimulation(Worker& asyncWorker){
-
-}
 
 void invokeSimulation(const Nan::FunctionCallbackInfo<v8::Value>& info){
     //Start the aysnc work on the runSimulation method, callback is at position 1
     //runAsyncMethod(runSimulation, 1, info);
+    info.GetReturnValue().Set(Nan::New(6));
 }
 
 void init(v8::Local<v8::Object> exports) {

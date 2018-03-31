@@ -1,13 +1,14 @@
 {
   "name": "rocketlab",
   "version": "0.0.1",
-  "description": "",
+  "description": "Rocket simulation in NodeJs + electron and c++",
+  "repository": "https://github.com/qkmaxware/Rocketlab.git",
   "main": "entrypoint.js",
   "gypfile": true,
   "scripts": {
     "start": "electron .",
-    "build": "node-gyp build",
-    "install": "node-gyp rebuild"
+    "build": "./node_modules/.bin/electron-rebuild",
+    "install": "./node_modules/.bin/electron-rebuild"
   },
   "author": "Colin",
   "license": "MIT",
@@ -17,5 +18,8 @@
     "nan": "^2.10.0",
     "node-gyp": "^3.6.2",
     "three": "^0.91.0"
+  },
+  "devDependencies": {
+    "electron-rebuild": "^1.7.3"
   }
 }
