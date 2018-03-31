@@ -4,7 +4,7 @@
 #include <vector>
 #include <math.h>
 
-namespace core {
+namespace simulator {
 
 struct vec3 {
     double x;

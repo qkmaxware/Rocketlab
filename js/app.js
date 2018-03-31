@@ -2,6 +2,7 @@ const electron = require('electron');
 const path = require('path');
 const url = require('url');
 const $ = require("jquery");
+//const rocketcore = require('./../build/Release/rocketcore.node');
 
 function Application(){
 

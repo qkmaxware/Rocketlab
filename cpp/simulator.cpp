@@ -1,6 +1,6 @@
 #include "simulator.h"
 
-namespace core {
+namespace simulator {
 
 //Vec3 implementation
 vec3::vec3(): x(0), y(0), z(0){}
