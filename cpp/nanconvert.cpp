@@ -6,6 +6,7 @@ jsvalue parseV8(v8::Local<v8::Value> value){
         r.nullOrUndefined = true;
         r.number = 0;
         r.boolean = false;
+        r.type = jstype::js_null;
         return r;
     }
     if(value->IsBoolean()){
@@ -13,12 +14,15 @@ jsvalue parseV8(v8::Local<v8::Value> value){
         r.nullOrUndefined = false;
         r.number = 1;
         r.boolean = value->BooleanValue();
+        r.type = jstype::js_boolean;
+        return r;
     }
     if(value->IsNumber()){
         jsvalue r;
         r.nullOrUndefined = false;
         r.number = value->NumberValue();
         r.boolean = r.number != 0 ? true : false;
+        r.type = jstype::js_number;
         return r;
     }
     if(value->IsString()){
@@ -27,6 +31,7 @@ jsvalue parseV8(v8::Local<v8::Value> value){
         r.number = 0;
         r.boolean = true;
         r.string = std::string(*Nan::Utf8String(value));
+        r.type = jstype::js_string;
         return r;
     }
     if(value->IsArray()){
@@ -43,12 +48,16 @@ jsvalue parseV8(v8::Local<v8::Value> value){
         r.number = arrayLength;
         r.boolean = true;
         r.array = values;
+        r.type = jstype::js_array;
         return r;
     }
     if(value->IsObject()){
         v8::Local<v8::Object> obj = Nan::To<v8::Object>(value).ToLocalChecked();
         v8::Local<v8::Array> properties = obj->GetOwnPropertyNames();
         jsvalue r;
+        r.number = properties->Length();
+        r.boolean = true;
+        r.nullOrUndefined = false;
         for (unsigned int i = 0; i < properties->Length(); ++i) {
             v8::Local<v8::Value> obj_key = properties->Get(i);
             v8::Local<v8::Value> obj_value = obj->Get(obj_key);
@@ -60,6 +69,7 @@ jsvalue parseV8(v8::Local<v8::Value> value){
                 // Ignore it
             }
         }
+        r.type = jstype::js_object;
         return r;
     }
 
@@ -68,5 +78,6 @@ jsvalue parseV8(v8::Local<v8::Value> value){
     empty.nullOrUndefined = true;
     empty.number = 0;
     empty.boolean = false;
+    empty.type = jstype::js_null;
     return empty;
 } 

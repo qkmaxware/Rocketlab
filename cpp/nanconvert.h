@@ -6,7 +6,17 @@
 #include <map>
 #include <vector>
 
+enum jstype { 
+    js_null,
+    js_number,
+    js_boolean,
+    js_string,
+    js_object,
+    js_array 
+};
+
 struct jsvalue {
+    jstype type;
     bool nullOrUndefined;
     double number;
     bool boolean;
@@ -16,5 +26,6 @@ struct jsvalue {
 };
 
 jsvalue parseV8(v8::Local<v8::Value> value);
+ 
 
 #endif

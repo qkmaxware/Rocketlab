@@ -17,7 +17,7 @@ void invokeSimulation(const Nan::FunctionCallbackInfo<v8::Value>& info){
 
     //Convert js input into c++ equivalents   
     jsvalue argvalue = parseV8(info[0]);
-    
+
     simulator::atmosphere atmo;
     atmo.surfaceDensity = 1.225;
     atmo.atmosphericRadius = 700;
@@ -35,7 +35,7 @@ void invokeSimulation(const Nan::FunctionCallbackInfo<v8::Value>& info){
 
     for(int i = 0; i < decoded_array.size(); i++){
         double t = decoded_array[i].object["time"].number;
-        double f = decoded_array[i].object["time"].number;
+        double f = decoded_array[i].object["thrust"].number;
         time[i] = t;
         thrust[i] = f;
     }
@@ -46,7 +46,7 @@ void invokeSimulation(const Nan::FunctionCallbackInfo<v8::Value>& info){
     simulator::engine motor;
     motor.totalMass = argvalue.object["motor"].object["totalWeight"].number;
     motor.propellantMass = argvalue.object["motor"].object["propellantWeight"].number;
-    motor.ignitionDelay =argvalue.object["motor"].object["delay"].number;
+    motor.ignitionDelay = argvalue.object["motor"].object["delay"].number;
     motor.thrust = curve;
     
     simulator::rocket rkt;
