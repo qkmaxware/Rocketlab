@@ -72,6 +72,10 @@ struct planet {
 //Respresents instananeous moment in time during the simulation
 struct timeslice {
     double time;
+    double mass;
+    double gravityForce;
+    double dragForce;
+    double thrustForce;
     vec3 position;
     vec3 velocity;
 };

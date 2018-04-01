@@ -270,7 +270,7 @@
                     },
                     motor: {
                         diameter: readFloat($("input[name=diameter]").val(), "0.001"),
-                        propellantWeight: readFloat($("input[name=diameter]").val(), $("select[name=eng-mass-unit]").val(), "for propellant mass"),
+                        propellantWeight: readFloat($("input[name=eng-prop-mass]").val(), $("select[name=eng-mass-unit]").val(), "for propellant mass"),
                         totalWeight: readFloat($("input[name=eng-total-mass]").val(),$("select[name=eng-mass-unit]").val(), "for total mass"),
                         delay: readFloat($("input[name=delay]").val(),$("select[name=delay-unit]").val(), "for delay"),
                         thrustcurve: curve
@@ -282,8 +282,6 @@
 
                 console.log(simulation);
                 page.simulate(simulation);
-
-                hideModal();
             }catch(e){
                 showModal("Error", e, true);
             }

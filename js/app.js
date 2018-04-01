@@ -49,7 +49,7 @@ function Page (){
 
     this.simulate = function(simdata){
         var output = rocketcore.simulate(simdata);
-        console.log(output);
+        showModal("Simulation complete", "File saved to: " + output, true);
     }
 
     this.browseFiles = function(filters){

@@ -17,23 +17,25 @@ double vec3::magnitude(){
 
 vec3 vec3::normal(){
     double m = this->magnitude();
-    return {x / m, y / m, z / m};
+    if(m == 0)
+        return vec3();
+    return vec3(this->x / m, this-> y / m, this->z / m);
 }
 
 vec3 vec3::operator+(const vec3& other){
-    return {x + other.x, y + other.y, z + other.z};
+    return vec3(this->x + other.x, this->y + other.y, this->z + other.z);
 }
 
 vec3 vec3::operator-(const vec3& other){
-    return {x - other.x, y - other.y, z - other.z};
+    return vec3(this->x - other.x, this->y - other.y, this->z - other.z);
 }
 
 vec3 vec3::operator*(const double scalar){
-    return {x * scalar, y * scalar, z * scalar};
+    return vec3(this->x * scalar, this->y * scalar, this->z * scalar);
 }
 
 vec3 vec3::operator/(const double scalar){
-    return {x / scalar, y / scalar, z / scalar};
+    return vec3(this->x / scalar, this->y / scalar, this->z / scalar);
 }
 
 //Thrust curve implementation
@@ -67,15 +69,23 @@ double thrustcurve::evaluate(double t){
 
 //Engine implementation
 double engine::mass(double t){
+    double drymass = (totalMass - propellantMass);
+    if(drymass < 0)
+        drymass = 0;
+
     if(t < thrust.time[0])
         return totalMass;
     if(t > thrust.time[thrust.points - 1])
-        return (totalMass - propellantMass);
+        return drymass; 
     
     double l = (t - thrust.time[0]) / (thrust.time[thrust.points - 1] - thrust.time[0]);
+    if(l > 1)
+        l = 1;
+    if(l < 0)
+        l = 0;
 
     //Linearly interpolate between full engine and empty
-    return (1 - l) * (totalMass) + (l) * (totalMass - propellantMass);
+    return (1 - l) * (totalMass) + (l) * (drymass);
 }
 
 //Atmosphere implementation
@@ -114,7 +124,7 @@ void simulate(double timestep, rocket rkt, planet body, std::vector<timeslice>& 
     //Init counters
     bool launched = false;
     bool grounded = true;
-    double timestamp = rkt.motor.ignitionDelay;
+    double timestamp = 0;
     double drag = 0;
     double area = 0;
     vec3 down = vec3(0, -1, 0);
@@ -123,12 +133,16 @@ void simulate(double timestep, rocket rkt, planet body, std::vector<timeslice>& 
     //Create initial stage
     timeslice start;
     start.time = timestamp;
+    start.mass = rkt.mass(timestamp);
+    start.gravityForce = body.Fg(start.mass, 0);
+    start.thrustForce = 0;
+    start.dragForce = 0;
 
     timeline.push_back(start);
 
     //Loop until simulation end 
     //End occurs if rocket doesn't launch for 30seconds or rocket has hit the ground after launching
-    while((!launched && timestamp < 30) || (launched && grounded)){
+    while((!launched && timestamp < 30) || (launched && !grounded)){
         timestamp += timestep;
 
         timeslice slice;
@@ -139,38 +153,46 @@ void simulate(double timestep, rocket rkt, planet body, std::vector<timeslice>& 
         vec3 p = timeline.back().position;
         vec3 v = timeline.back().velocity;
 
+        slice.gravityForce = body.Fg(m, p.y);
+        slice.dragForce = body.atmo.Fd(v.magnitude(), p.y, drag, area);
+        slice.thrustForce = rkt.motor.thrust.evaluate(timestamp);
+
         //Do phys
         //Force of gravity (changes with altitude)
-        vec3 Fg = down * body.Fg(m, p.y);
+        vec3 Fg = down * slice.gravityForce;
         //Force of thrust (changes with time)
-        vec3 Ft = up * rkt.motor.thrust.evaluate(timestamp);
+        vec3 Ft = up * slice.thrustForce;
         //Force of drag (varies with altitude, and speed, and cross-section)
-        vec3 Fd = (v.normal() * -1) * body.atmo.Fd(v.magnitude(), p.y, drag, area);
+        vec3 dir = v.normal();
+        vec3 Fd = (dir) * -slice.dragForce;
 
         //Total force
-        vec3 F = Fg + Ft + Fd;
+        vec3 F = (Fg + Fd) + Ft;
         //Acceleration vector
         vec3 a = F / m;
         //New velocity
         vec3 vf = v + a * timestep;
 
-        //If I havent launched yet, I can't move below y = 0
-        if(grounded && vf.y < 0)
+        if(!launched && vf.y < 0)
             vf.y = 0;
 
         //Distance travelled
         vec3 d = vf * timestep;
+        vec3 np = p + d;
+        if(!launched)
+            np = p;
 
         //Assign values
-        slice.position = p + d;
+        slice.position = np;
         slice.velocity = vf;
+        slice.mass = m;
 
         //Add to timeline
         timeline.push_back(slice);
 
         //Cleanup flags
-        launched = slice.velocity.y > 0;
-        grounded = slice.position.y < 0;
+        launched = slice.velocity.magnitude() > 0;
+        grounded = !launched || slice.position.y < 0;
     }
 }
     
