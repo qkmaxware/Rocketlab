@@ -6,6 +6,8 @@
 #include <map>
 #include <vector>
 
+namespace js {
+
 enum jstype { 
     js_null,
     js_number,
@@ -25,7 +27,26 @@ struct jsvalue {
     std::vector<jsvalue> array;
 };
 
-jsvalue parseV8(v8::Local<v8::Value> value);
- 
+jsvalue decodeV8(v8::Local<v8::Value> value);
+
+namespace encoder {
+
+v8::Local<v8::Primitive> encodeNullOrUndefined(jsvalue value);
+
+v8::Local<v8::Number> encodeNumber(jsvalue value);
+
+v8::Local<v8::Boolean> encodeBoolean(jsvalue value);
+
+v8::Local<v8::String> encodeString(jsvalue value);
+
+v8::Local<v8::Array> encodeArray(jsvalue value);
+
+v8::Local<v8::Object> encodeObject(jsvalue value);
+
+}
+
+v8::Local<v8::Value> encodeV8(jsvalue value);
+
+}
 
 #endif

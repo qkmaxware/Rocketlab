@@ -3,6 +3,8 @@
 #include <vector> 
 #include "nanconvert.h"
 
+using namespace js;
+
 void invokeSimulation(const Nan::FunctionCallbackInfo<v8::Value>& info){
     //Confirm inputs
     if(info.Length() < 1){
@@ -16,7 +18,7 @@ void invokeSimulation(const Nan::FunctionCallbackInfo<v8::Value>& info){
     }
 
     //Convert js input into c++ equivalents   
-    jsvalue argvalue = parseV8(info[0]);
+    jsvalue argvalue = decodeV8(info[0]);
 
     simulator::atmosphere atmo;
     atmo.surfaceDensity = 1.225;
