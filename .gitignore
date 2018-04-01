@@ -1,8 +1,9 @@
-node_modules
-builds
-bin
-.vscode
-.vs
-build
 *.o
+
 .git
+.vs
+.vscode
+bin
+build
+builds 
+node_modules

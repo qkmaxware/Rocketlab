@@ -47,13 +47,16 @@ function Application(){
 
 function Page (){
 
-    this.fireevent = function(){
-        var c = rocketcore.simulate();
-        console.log(c);
+    this.simulate = function(simdata){
+        var output = rocketcore.simulate(simdata);
+        console.log(output);
     }
 
-    this.browseFiles = function(){
-        var filename = electron.remote.dialog.showOpenDialog({properties: ['openFile', 'multiSelections']});
+    this.browseFiles = function(filters){
+        var filename = electron.remote.dialog.showOpenDialog({
+            filters: filters,
+            properties: ['openFile', 'multiSelections']
+        });
         return filename;
     }
 

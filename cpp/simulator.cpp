@@ -78,6 +78,20 @@ double engine::mass(double t){
     return (1 - l) * (totalMass) + (l) * (totalMass - propellantMass);
 }
 
+//Atmosphere implementation
+double atmosphere::densityAtAltitude(double height){
+    double t = height/atmosphericRadius;
+    return (1 - t) * surfaceDensity;
+}
+
+double atmosphere::dynamicPressure(double speed, double height){
+    return (1/2) * densityAtAltitude(height) * speed * speed;
+}
+
+double atmosphere::Fd(double speed, double height, double dragCoefficient, double surfaceArea){
+    return dynamicPressure(speed, height) * dragCoefficient * surfaceArea;
+}
+
 //Rocket implementation
 double rocket::mass(double t){
     return rocketMass + motor.mass(t);
@@ -100,7 +114,9 @@ void simulate(double timestep, rocket rkt, planet body, std::vector<timeslice>& 
     //Init counters
     bool launched = false;
     bool grounded = true;
-    double timestamp = 0;
+    double timestamp = rkt.motor.ignitionDelay;
+    double drag = 0;
+    double area = 0;
     vec3 down = vec3(0, -1, 0);
     vec3 up = vec3(0, 1 , 0);
 
@@ -121,19 +137,28 @@ void simulate(double timestep, rocket rkt, planet body, std::vector<timeslice>& 
         //Setup
         double m = rkt.mass(timestamp);
         vec3 p = timeline.back().position;
+        vec3 v = timeline.back().velocity;
 
         //Do phys
+        //Force of gravity (changes with altitude)
         vec3 Fg = down * body.Fg(m, p.y);
+        //Force of thrust (changes with time)
         vec3 Ft = up * rkt.motor.thrust.evaluate(timestamp);
+        //Force of drag (varies with altitude, and speed, and cross-section)
+        vec3 Fd = (v.normal() * -1) * body.atmo.Fd(v.magnitude(), p.y, drag, area);
 
-        vec3 F = Fg + Ft;
+        //Total force
+        vec3 F = Fg + Ft + Fd;
+        //Acceleration vector
         vec3 a = F / m;
-        vec3 vf = timeline.back().velocity + a * timestep;
+        //New velocity
+        vec3 vf = v + a * timestep;
 
         //If I havent launched yet, I can't move below y = 0
         if(grounded && vf.y < 0)
             vf.y = 0;
 
+        //Distance travelled
         vec3 d = vf * timestep;
 
         //Assign values

@@ -8,7 +8,8 @@
             ],
             "sources": [
                 "cpp/definition.cpp",
-                "cpp/simulator.cpp"
+                "cpp/simulator.cpp",
+                "cpp/nanconvert.cpp"
             ]
         }
     ]

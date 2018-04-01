@@ -50,10 +50,21 @@ struct rocket {
     double mass(double t);
 };
 
+//Represents a planet's atmosphere
+struct atmosphere {
+    double surfaceDensity;
+    double atmosphericRadius;
+    //Fd = (1/2) * MassDensity * FlowVelocity^2 * CoefficientOfDrag * SurfaceArea
+    double densityAtAltitude(double height);
+    double dynamicPressure(double speed, double height);
+    double Fd(double speed, double height, double dragCoefficient, double surfaceArea);
+};
+
 //Represents the planet being launched from
 struct planet {
     double surfaceAcceleration;
     double surfaceRadius;
+    atmosphere atmo;
     double Ag(double height);
     double Fg(double bodyMass, double height);
 };

@@ -7,8 +7,8 @@
   "gypfile": true,
   "scripts": {
     "start": "electron .",
-    "build": "./node_modules/.bin/electron-rebuild",
-    "install": "./node_modules/.bin/electron-rebuild"
+    "build": "./node_modules/.bin/electron-rebuild -f",
+    "install": "./node_modules/.bin/electron-rebuild -f"
   },
   "author": "Colin",
   "license": "MIT",

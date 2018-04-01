@@ -5,12 +5,25 @@
         <link rel="stylesheet" href="./../styles/custom.css">
     </head>
     <body class="w3-white">
+        <div id="modal" class="w3-modal" style="z-index: 1000;">
+            <div class="w3-modal-content">
+                <div class="w3-container w3-xlarge w3-blue">
+                    <div class="w3-row">
+                        <div id="modal-heading" class="w3-col m11">Head</div>
+                        <button id="modal-close" class="w3-button w3-col m1" onclick="hideModal();">x</button>
+                    </div>
+                </div>
+                <div id="modal-contents" class="w3-container w3-center">
+                </div>
+            </div>
+        </div>
+
         <div class="w3-container w3-blue">
             <h2>Simulate</h2>
         </div>
         <div class="w3-container w3-indigo">
             <button class="w3-button" style="float:left;">Cancel</button>
-            <button class="w3-button" style="float:right;">Start</button>
+            <button class="w3-button" style="float:right;" onclick="startSimulation();">Start</button>
         </div>
         <br/>
         <form class="w3-container">
@@ -26,9 +39,9 @@
                     </div>
                     <div class="w3-half">
                         <select class="w3-select" name="rocket-mass-unit">
-                            <option value="kg">Kilograms (Kg)</option>
-                            <option value="g">Grams (g)</option>
-                            <option value="lbs">Pounds (lbs)</option>
+                            <option value="1">Kilograms (Kg)</option>
+                            <option value="0.001">Grams (g)</option>
+                            <option value="0.453592">Pounds (lbs)</option>
                         </select>
                     </div>
                 </div>
@@ -70,8 +83,8 @@
                         </div>
                         <div class="w3-half">
                             <select class="w3-select" name="delay-unit">
-                                <option value="s">Seconds (s)</option>
-                                <option value="ms">Miliseconds (ms)</option>
+                                <option value="1">Seconds (s)</option>
+                                <option value="0.001">Miliseconds (ms)</option>
                             </select>
                         </div>
                     </div>
@@ -85,9 +98,9 @@
                         </div>
                         <div class="w3-third">
                             <select class="w3-select" name="eng-mass-unit">
-                                <option value="kg">Kilograms (Kg)</option>
-                                <option value="g">Grams (g)</option>
-                                <option value="lbs">Pounds (lbs)</option>
+                                <option value="1">Kilograms (Kg)</option>
+                                <option value="0.001">Grams (g)</option>
+                                <option value="0.453592">Pounds (lbs)</option>
                             </select>
                         </div>
                     </div>
@@ -117,7 +130,7 @@
                 <div class="w3-row-padding">
                     <label>Timestep (s)</label></br>
                     <div class="w3-full">
-                        <input class="w3-input w3-border" type="text" name="rocket-mass" placeholder="timestep" value="0.01">
+                        <input class="w3-input w3-border" type="text" name="timestep" placeholder="timestep" value="0.01">
                     </div>
                 </div>
                 <br/>
@@ -133,6 +146,21 @@
         const eng_parser = require("./../js/eng_parser.js");
         //const renderer = require("./../js/webgl.js");      
         var page = new program.page();
+
+        function hideModal(){
+            $("#modal").hide();
+        }
+
+        function showModal(heading, content, canClose){
+            $("#modal-heading").html(heading);
+            $("#modal-contents").html(content);
+            if(canClose){
+                $("#modal-close").show();
+            }else{
+                $("#modal-close").hide();
+            }
+            $("#modal").show();
+        }
 
         function showHide(div){
             $("#"+div).toggle();
@@ -189,10 +217,11 @@
         }
 
         function loadEng(){
-            var file = page.browseFiles();
+            var file = page.browseFiles([
+                { name: 'RASP ENG', extensions: ['eng'] },
+            ]);
             if(file && file.length > 0)
             eng_parser.parseEnv(file[0], function(eng){
-                console.log(eng);
                 $("input[name=name]").val(eng.name);
                 $("input[name=manufacturer]").val(eng.manufacturer);
                 $("input[name=diameter]").val(eng.diameter);
@@ -202,11 +231,62 @@
                 if(eng.delays.length > 0)
                     $("input[name=delay]").val(eng.delays[0]);
                 
-                $("select[name=delay-unit]").val("s");
-                $("select[name=eng-mass-unit]").val("kg");
+                $("select[name=delay-unit]").val(1);
+                $("select[name=eng-mass-unit]").val(1);
 
                 drawThrustcurve(eng.datapoints);
             });
+        }
+
+        function readFloat(value, conversion, message){
+            var v = parseFloat(value);
+            if(isNaN(v))
+                throw "Invalid number " + (message ? message : "");
+            var c = parseFloat(conversion);
+            if(isNaN(c))
+                throw "Invalid number in conversion factor " + (message ? message : "");
+            return v * c;
+        }
+
+        function startSimulation(){
+            showModal("Simulating", 'Please wait...<br><div class="loader"></div>', true);
+
+            try{
+                //Create rocket definition
+                var curve = [];
+                $('#thrust-table tr').each(function(idx, row) {
+                    var $row = $(row);
+                    if(idx != 0){
+                        curve.push({
+                            time: readFloat($row[0].children[0].innerHTML, 1, "for time-index"),
+                            thrust: readFloat($row[0].children[1].innerHTML, 1, "for thrust-value"),
+                        });
+                    }
+                });
+
+                var simulation = {
+                    rocket: {
+                        mass: readFloat($("input[name=rocket-mass]").val(),$("select[name=rocket-mass-unit]").val(), "for rocket mass")
+                    },
+                    motor: {
+                        diameter: readFloat($("input[name=diameter]").val(), "0.001"),
+                        propellantWeight: readFloat($("input[name=diameter]").val(), $("select[name=eng-mass-unit]").val(), "for propellant mass"),
+                        totalWeight: readFloat($("input[name=eng-total-mass]").val(),$("select[name=eng-mass-unit]").val(), "for total mass"),
+                        delay: readFloat($("input[name=delay]").val(),$("select[name=delay-unit]").val(), "for delay"),
+                        thrustcurve: curve
+                    },
+                    quality: {
+                        timestep: readFloat($("input[name=timestep]").val(),"1", "for timestep")
+                    }
+                };
+
+                console.log(simulation);
+                page.simulate(simulation);
+
+                hideModal();
+            }catch(e){
+                showModal("Error", e, true);
+            }
         }
 
         //Load up uv mapped sphere with texture
