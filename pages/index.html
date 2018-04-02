@@ -179,41 +179,23 @@
             if(!data || data.length < 1){
                 return;
             }
-            //Get bounds
-            var first = data[0];
-            var last = data[data.length - 1];
-            var minx = first.time;
-            var maxx = last.time;
-            var miny = first.thrust; var maxy = first.thrust;
-            for(var i = 0; i < data.length; i++){
-                if(data[i].thrust > maxy)
-                    maxy = data[i].thrust;
-                if(data[i].thrust < miny)
-                    miny = data[i].thrust;
-            }
+            page.drawLineGraph({
+                el: c,
+                xaxis: "time",
+                xlabel: "time",
+                yaxis: "thrust",
+                ylabel: "thrust",
+                data: data,
+                lineWidth: 2
+            });
+
             //Draw curve
-            var first = true;
-            ctx.beginPath();
             for(var i = 0; i < data.length; i++){
                 var point = data[i];
                 var x = point.time;
                 var y = point.thrust;
-
-                var screenX = c.width * ((x - minx) / (maxx - minx));
-                var screenY = c.height - c.height * ((y - miny) / (maxy - miny));
-
                 t.append('<tr><td>'+x+'</td><td>'+y+'</td><td></td></tr>');
-
-                if(first){
-                    ctx.moveTo(screenX, screenY);
-                    first = false;
-                }else{
-                    ctx.lineTo(screenX,screenY);
-                }
             }
-            ctx.strokeStyle = "#f442b0";
-            ctx.lineWidth = 2;
-            ctx.stroke();
         }
 
         function loadEng(){
