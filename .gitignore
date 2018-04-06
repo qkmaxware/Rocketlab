@@ -2,6 +2,7 @@
 *.txt
 *.csv
 *.~lock*
+*.pdf
 
 .git
 .vs

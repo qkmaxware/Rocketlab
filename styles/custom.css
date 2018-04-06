@@ -13,6 +13,15 @@
     100% { transform: rotate(360deg); }
 }
 
+.sidebar {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 25%;
+    min-width: 120px;
+}
+
 .max-height {
     height: 100%;
 }
@@ -34,20 +43,19 @@
 .borderLayout .left {
     display: table-cell;
     vertical-align: top;
-    width: 10%;
-    min-width: 240px;
+    max-width: 20%;
 }
 
 .borderLayout .center {
     display: table-cell;
     vertical-align: top;
+    height: 100%;
 }
   
 .borderLayout .right {
     display: table-cell;
     vertical-align: top;
-    width: 10%;
-    min-width: 240px;
+    max-width: 20%;
 }
   
 .borderLayout .bottom {

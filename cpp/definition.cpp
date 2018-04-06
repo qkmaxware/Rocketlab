@@ -1,6 +1,5 @@
 #include <nan.h>
 #include <vector>
-#include <fstream>
 #include <ctime>
 
 #include "simulator.h" 
@@ -66,23 +65,20 @@ void invokeSimulation(const Nan::FunctionCallbackInfo<v8::Value>& info){
     simulator::simulate(timestep, rkt, earth, timeline);
 
     //Create output
-    std::string filename = "simulation.csv";
-    std::ofstream out(filename.c_str(), std::ofstream::out);
-    out << "time, mass, x, y, z, vx, vy, vz, Fg, Fd, Ft" << std::endl;
-    for(int i = 0; i < timeline.size(); i++){
-        simulator::timeslice& slice = timeline[i];
-        out << slice.time << ", " << slice.mass << ", ";
-        out << slice.position.x << ", " << slice.position.y << ", " << slice.position.z << ", ";
-        out << slice.velocity.x << ", " << slice.velocity.y << ", " << slice.velocity.z << ", ";
-        out << slice.gravityForce << ", " << slice.dragForce << ", " << slice.thrustForce;
-        out << std::endl;
-    }
-    out.close();
+    std::string filename = argvalue.object["name"].string;
+    simulator::formatOutput(filename, timeline);
+
+    jsvalue retval;
+    retval.type = jstype::js_object;
+    jsvalue fname;
+    fname.type = jstype::js_string;
+    fname.string = filename;
+    retval.object["filename"] = fname;
 
     //Cleanup and set output
     delete time;
     delete thrust;
-    info.GetReturnValue().Set(Nan::New(filename.c_str()).ToLocalChecked());
+    info.GetReturnValue().Set(encodeV8(retval));
 }
 
 void init(v8::Local<v8::Object> exports) {

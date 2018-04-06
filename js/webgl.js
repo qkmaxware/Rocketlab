@@ -1,11 +1,15 @@
 const THREE = require('three');
+var OBJLoader = require('three-obj-loader');
+OBJLoader(THREE);
 
 function webgl(el) {
     
     var scene = new THREE.Scene();
 
     var VIEW_ANGLE = 45;
-    var ASPECT = 640 / 480;
+    var WIDTH = 640;
+    var HEIGHT = 480;
+    var ASPECT = WIDTH / HEIGHT;
     var NEAR = 0.1;
     var FAR = 10000;
     var camera = new THREE.PerspectiveCamera(
@@ -26,13 +30,14 @@ function webgl(el) {
     this.loadTextureMaterial = function (tex, load, err){
         texLoader.load(
             // resource URL
-            'textures/land_ocean_ice_cloud_2048.jpg',
+            tex,
         
             // onLoad callback
             function ( texture ) {
                 // in this example we create the material when the texture is loaded
                 var material = new THREE.MeshBasicMaterial( {
-                    map: texture
+                    map: texture,
+                    flatShading: true
                 });
                 if(load != null)
                     load(material);
@@ -45,6 +50,7 @@ function webgl(el) {
             function ( error ) {
                 if(err != null)
                     err(error);
+                console.log("Failed to load "+ tex);
             }
         );
     }
@@ -65,6 +71,7 @@ function webgl(el) {
             function ( error ) {
                 if(err != null)
                     err(error);
+                console.log("Failed to load "+ obj);
             }
         );
     }
@@ -74,10 +81,10 @@ function webgl(el) {
         var renderer = new THREE.WebGLRenderer();
         this.renderer = renderer;
 
-        renderer.setSize(el.style.width, el.style.height);
+        renderer.setSize(WIDTH, HEIGHT);
         el.appendChild(renderer.domElement);
         el.addEventListener('resize', function(){
-            renderer.setSize(el.style.width, el.style.height);
+            renderer.setSize(WIDTH, HEIGHT);
         });
 
         this.render = function (){

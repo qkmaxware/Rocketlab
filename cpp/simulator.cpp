@@ -2,42 +2,6 @@
 
 namespace simulator {
 
-//Vec3 implementation
-vec3::vec3(): x(0), y(0), z(0){}
-
-vec3::vec3(double ix, double iy, double iz):x(ix), y(iy), z(iz){}
-
-double vec3::sqrMagnitude(){
-    return x*x + y*y + z*z;
-}
-
-double vec3::magnitude(){
-    return sqrt(this->sqrMagnitude());
-}
-
-vec3 vec3::normal(){
-    double m = this->magnitude();
-    if(m == 0)
-        return vec3();
-    return vec3(this->x / m, this-> y / m, this->z / m);
-}
-
-vec3 vec3::operator+(const vec3& other){
-    return vec3(this->x + other.x, this->y + other.y, this->z + other.z);
-}
-
-vec3 vec3::operator-(const vec3& other){
-    return vec3(this->x - other.x, this->y - other.y, this->z - other.z);
-}
-
-vec3 vec3::operator*(const double scalar){
-    return vec3(this->x * scalar, this->y * scalar, this->z * scalar);
-}
-
-vec3 vec3::operator/(const double scalar){
-    return vec3(this->x / scalar, this->y / scalar, this->z / scalar);
-}
-
 //Thrust curve implementation
 double thrustcurve::evaluate(double t){
     //Return thrust = 0 if not on the thrust curve
@@ -91,11 +55,15 @@ double engine::mass(double t){
 //Atmosphere implementation
 double atmosphere::densityAtAltitude(double height){
     double t = height/atmosphericRadius;
+    if(t < 0)
+        t = 0;
+    if(t > 1)
+        t = 1;
     return (1 - t) * surfaceDensity;
 }
 
 double atmosphere::dynamicPressure(double speed, double height){
-    return (1/2) * densityAtAltitude(height) * speed * speed;
+    return (0.5) * densityAtAltitude(height) * speed * speed;
 }
 
 double atmosphere::Fd(double speed, double height, double dragCoefficient, double surfaceArea){
@@ -132,11 +100,14 @@ void simulate(double timestep, rocket rkt, planet body, std::vector<timeslice>& 
 
     //Create initial stage
     timeslice start;
+    start.position = vec3(0,body.surfaceRadius,0); //Start on surface
     start.time = timestamp;
     start.mass = rkt.mass(timestamp);
     start.gravityForce = body.Fg(start.mass, 0);
     start.thrustForce = 0;
     start.dragForce = 0;
+    start.altitude = 0;
+    start.dynamicPressure = 0;
 
     timeline.push_back(start);
 
@@ -149,19 +120,23 @@ void simulate(double timestep, rocket rkt, planet body, std::vector<timeslice>& 
         slice.time = timestamp;
 
         //Setup
-        double m = rkt.mass(timestamp);
         vec3 p = timeline.back().position;
         vec3 v = timeline.back().velocity;
+        vec3 norm = p.normal();
+        double m = rkt.mass(timestamp);
+        double speed = v.magnitude();
 
-        slice.gravityForce = body.Fg(m, p.y);
-        slice.dragForce = body.atmo.Fd(v.magnitude(), p.y, drag, area);
+        slice.altitude = p.magnitude() - body.surfaceRadius;
+        slice.gravityForce = body.Fg(m, slice.altitude);
+        slice.dynamicPressure = body.atmo.dynamicPressure(speed, slice.altitude);
+        slice.dragForce = body.atmo.Fd(speed, slice.altitude, drag, area);
         slice.thrustForce = rkt.motor.thrust.evaluate(timestamp);
 
         //Do phys
         //Force of gravity (changes with altitude)
-        vec3 Fg = down * slice.gravityForce;
+        vec3 Fg = (norm * -1) * slice.gravityForce;
         //Force of thrust (changes with time)
-        vec3 Ft = up * slice.thrustForce;
+        vec3 Ft = norm * slice.thrustForce;
         //Force of drag (varies with altitude, and speed, and cross-section)
         vec3 dir = v.normal();
         vec3 Fd = (dir) * -slice.dragForce;
@@ -191,9 +166,72 @@ void simulate(double timestep, rocket rkt, planet body, std::vector<timeslice>& 
         timeline.push_back(slice);
 
         //Cleanup flags
-        launched = slice.velocity.magnitude() > 0;
-        grounded = !launched || slice.position.y < 0;
+        launched = launched || slice.velocity.magnitude() > 0;
+        grounded = !launched || slice.altitude < 0;
     }
 }
-    
+
+void formatOutput(std::string filename, std::vector<timeslice>& timeline){
+    std::ofstream out(filename.c_str(), std::ofstream::out);
+    //Output statistics
+    out << "#Summary Statistics" << std::endl;
+    double maxtime = 0; 
+    double mintime = 0;
+    double maxalt = 0;
+    double minalt = 0;
+    double addalt = 0;
+    double maxspeed = 0;
+    double minspeed = 0;
+    double addspeed = 0;
+    double minq = 0;
+    double maxq = 0;
+    double addq = 0;
+    for(int i = 0; i < timeline.size(); i++){
+        simulator::timeslice& slice = timeline[i];
+
+        if(slice.time < mintime)
+            mintime = slice.time;
+        if(slice.time > maxtime)
+            maxtime = slice.time;
+        
+        if(slice.altitude < minalt)
+            minalt = slice.altitude;
+        if(slice.altitude > maxalt)
+            maxalt = slice.altitude;
+        addalt += slice.altitude;
+
+        double speed = slice.velocity.magnitude();
+        if(speed < minspeed)
+            minspeed = speed;
+        if(speed > maxspeed)
+            maxspeed = speed;
+        addspeed += speed;
+
+        if(slice.dynamicPressure < minq)
+            minq = slice.dynamicPressure;
+        if(slice.dynamicPressure > maxq)
+            maxq = slice.dynamicPressure;
+        addq += slice.dynamicPressure;
+    }
+    out << "Quantity, Min, Max, Avg" << std::endl;
+    out << "Flight time (s), " << mintime << ", " << maxtime << std::endl;
+    out << "Altitude (m), " << minalt << ", " << maxalt << ", " << (addalt / timeline.size()) << std::endl;
+    out << "Speed (m/s), " << minspeed << ", " << maxspeed << ", " << (addspeed / timeline.size()) << std::endl;
+    out << "Dynamic Pressure, " << minq << ", " << maxq << ", " << (addq / timeline.size()) << std::endl;
+    out << std::endl;
+
+    //Output timeline
+    out << "#Timeline" << std::endl;
+    out << "time, mass, altitude, x, y, z, vx, vy, vz, Fg, Fd, Ft" << std::endl;
+    for(int i = 0; i < timeline.size(); i++){
+        simulator::timeslice& slice = timeline[i];
+        out << slice.time << ", " << slice.mass << ", " << slice.altitude, ",";
+        out << slice.position.x << ", " << slice.position.y << ", " << slice.position.z << ", ";
+        out << slice.velocity.x << ", " << slice.velocity.y << ", " << slice.velocity.z << ", ";
+        out << slice.gravityForce << ", " << slice.dragForce << ", " << slice.thrustForce;
+        out << std::endl;
+    }
+    out.close();
+}
+
 }

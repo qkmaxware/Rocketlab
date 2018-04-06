@@ -9,7 +9,8 @@
             "sources": [
                 "cpp/definition.cpp",
                 "cpp/simulator.cpp",
-                "cpp/nanconvert.cpp"
+                "cpp/nanconvert.cpp",
+                "cpp/linearalgebra.cpp"
             ]
         }
     ]

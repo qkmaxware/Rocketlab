@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="./../styles/w3.css">
+    <link rel="stylesheet" href="./../styles/custom.css">
+</head>
+
+<body>
+
+    <div id="modal" class="w3-modal" style="z-index: 1000;">
+        <div class="w3-modal-content">
+            <div class="w3-container w3-xlarge w3-blue">
+                <div class="w3-row">
+                    <div id="modal-heading" class="w3-col m11">Formatting Report</div>
+                    <button id="modal-close" class="w3-button w3-col m1" onclick="hideModal();">x</button>
+                </div>
+            </div>
+            <div id="modal-contents" class="w3-container w3-center">
+                Please wait...<br><div class="loader"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="w3-container w3-blue" style="width: 100%; height: 65px;">
+        <div class="w3-row w3-blue">
+            <h2 class="w3-col s9">Simulation Report</h2>
+            <div class="w3-col s1">
+                <button class="w3-button" onclick="save();">Export</button>
+            </div>
+            <div class="w3-col s1">
+                 <button class="w3-button" onclick="browseAndLoad();">Load</button>
+            </div>
+            <div class="w3-col s1">
+                <button class="w3-button" onclick="window.location.href='simulator.html'">Back</button>
+            </div>
+        </div>
+    </div>
+    <div class="w3-container">
+        <h3>
+            Summary
+        </h3>
+        <table id="summary-table" class="w3-table w3-striped w3-bordered">
+            <tr class="w3-dark-grey">
+                <th>Measured Quantity</th>
+                <th>Min</th>
+                <th>Max</th>
+                <th>Avg</th>
+            </tr>
+        </table>
+        <h3>
+            Timeline
+        </h3>
+        <br>
+        <div id="timeline">
+            <canvas id="height-time" width="640" height="480"></canvas>
+        </div>
+    </div>
+</body>
+
+<script>
+    const $ = require("jquery");    
+    const program = require("./../js/app.js");  
+    var app = program.getApp();
+    var page = new program.page();
+
+    function hideModal(){
+        $("#modal").hide();
+    }
+
+    function showModal(){
+        $("#modal-close").hide();
+        $("#modal").show();
+    }
+
+    /*
+    function resizeCanvas(){
+        $('canvas').each(function(idx, canvas) {
+            canvas.style.width ='100%';
+            canvas.style.height='100%';
+
+            canvas.width  = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+        })
+    }
+    window.addEventListener('resize', resizeCanvas, false);  */  
+
+    function loadTables(data){
+        showModal();
+        //Clear table(s)
+        var t = $("#summary-table");
+        t.find("tr:gt(0)").remove()
+
+        console.log(data);
+        var summary = data[1];
+
+        //Loop through, ignoring header
+        for(var i = 1; i < summary.length; i++){
+            t.append('<tr><td>'+summary[i][0]+'</td><td>'+summary[i][1]+'</td><td>'+summary[i][2]+'</td><td>'+summary[i][3]+'</td></tr>');
+        }
+        
+        //Convert string to numbers
+        var timeline = [];
+        for(var i = 1; i < data[2].length; i++){
+            var d = [];
+            for(var j = 0; j < data[2][i].length; j++){
+                d.push(parseFloat(data[2][i][j]));
+            }
+            timeline.push(d);
+        }
+        var c = document.getElementById("height-time");
+        page.drawLineGraph({
+            el: c,
+            xaxis: 0,
+            xlabel: "time",
+            yaxis: 2,
+            ylabel: "altitude",
+            title: "Altitude Vs. Time",
+            data: timeline,
+            xgap: 30,
+            ygap: 40
+        });
+        hideModal();
+    }
+
+    function save(){
+        app.exportPDF(page.saveFile([
+            { name: 'Portable Document Format', extensions: ['pdf'] }
+        ]))
+    }
+
+    function loadCsv(f){
+        var results = {
+            map: {
+
+            }
+        };
+        var idx = 0;
+        var active = null;
+        program.files.readByLine(f, function(line){
+            var line = line.trim();
+            if(line.length == 0)
+                return;
+            if(line.startsWith("#")){
+                active = line.substr(1);
+                idx++;
+                results.map[idx] = active;
+                return;
+            }
+            if(active != null){
+                var arr = null;
+                if(results[idx]){
+                    arr = results[idx];
+                }else{
+                    arr = [];
+                    results[idx] = arr;
+                }
+                arr.push(line.split(","));
+            }
+        }, function(){
+            loadTables(results);
+        });
+    }
+
+    function browseAndLoad(){
+        var file = page.browseFiles([
+            { name: 'Comma Separated Value Sheet', extensions: ['csv'] },
+        ]);
+        if(file && file.length > 0){
+            loadCsv(file[0]);
+        }
+    }
+
+    //Auto load 
+    var query = page.extractParameters();
+    if(query && query.file){
+        loadCsv(query.file);
+    }
+
+</script>
+
+</html>

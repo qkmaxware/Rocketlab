@@ -18,11 +18,11 @@
             </div>
         </div>
 
-        <div class="w3-container w3-blue">
+        <div class="w3-container w3-blue" style="height: 65px;">
             <h2>Simulate</h2>
         </div>
         <div class="w3-container w3-indigo">
-            <button class="w3-button" style="float:left;">Cancel</button>
+            <button class="w3-button" style="float:left;" onclick="window.location.href='report.html'">View Report</button>
             <button class="w3-button" style="float:right;" onclick="startSimulation();">Start</button>
         </div>
         <br/>
@@ -122,7 +122,7 @@
                     <br/>
                 </div>
             </div>
-            
+
             <div class="w3-container w3-grey w3-border" onclick="showHide('quality-settings');">
                 <h4>Quality Settings</h4>
             </div>
@@ -143,8 +143,10 @@
     <script>
         const $ = require("jquery");
         const program = require("./../js/app.js");   
-        const eng_parser = require("./../js/eng_parser.js");
-        //const renderer = require("./../js/webgl.js");      
+        const rocket = require("./../js/rocket.js"); 
+        const renderer = require("./../js/webgl.js");      
+
+        var app = program.getApp();
         var page = new program.page();
 
         function hideModal(){
@@ -172,13 +174,6 @@
             t.find("tr:gt(0)").remove()
 
             var c = document.getElementById("thrust-curve");
-            var ctx = c.getContext("2d");
-            //Clear canvas
-            ctx.fillStyle = "#FFFFFF"
-            ctx.fillRect(0,0,c.width,c.height);
-            if(!data || data.length < 1){
-                return;
-            }
             page.drawLineGraph({
                 el: c,
                 xaxis: "time",
@@ -186,10 +181,9 @@
                 yaxis: "thrust",
                 ylabel: "thrust",
                 data: data,
-                lineWidth: 2
             });
 
-            //Draw curve
+            //Draw curve data in table
             for(var i = 0; i < data.length; i++){
                 var point = data[i];
                 var x = point.time;
@@ -203,7 +197,8 @@
                 { name: 'RASP ENG', extensions: ['eng'] },
             ]);
             if(file && file.length > 0)
-            eng_parser.parseEnv(file[0], function(eng){
+            var engine = new rocket.engine();
+            engine.parseEnv(file[0], function(eng){
                 $("input[name=name]").val(eng.name);
                 $("input[name=manufacturer]").val(eng.manufacturer);
                 $("input[name=diameter]").val(eng.diameter);
@@ -247,6 +242,7 @@
                 });
 
                 var simulation = {
+                    name: "results/simulation_" + (new Date()).getTime()+".csv",
                     rocket: {
                         mass: readFloat($("input[name=rocket-mass]").val(),$("select[name=rocket-mass-unit]").val(), "for rocket mass")
                     },
@@ -262,20 +258,32 @@
                     }
                 };
 
-                console.log(simulation);
-                page.simulate(simulation);
+                var result = page.simulate(simulation);
+
+                showModal(
+                    "Simulation complete", 
+                    "File saved to: " + simulation.name + 
+                    '<br><div class="w3-row"><div class="w3-col m6">'+
+                    '<button class="w3-button" onclick="page.openFile(\''+simulation.name+'\')">Open File</button></div>'+
+                    '<div class="w3-col m6"><button class="w3-button" onclick="app.loadReport(\''+simulation.name+'\')">View Report</button>'+
+                    '</div></div>', 
+                    true
+                );
             }catch(e){
                 showModal("Error", e, true);
             }
         }
 
         //Load up uv mapped sphere with texture
-        //var planetRenderer = new renderer.webgl(document.getElementById("renderer"));
+        //var planetRenderer = new renderer.webgl(document.getElementById("planetviewport"));
         //planetRenderer.loadObj('./../data/planet.obj', function(obj){
+            //obj.position.set(0,2,0);
             //planetRenderer.loadTextureMaterial('./../data/earth.png', function(mat){
                 //obj.material = mat;
+                //planetRenderer.render();
             //});
         //});
+        //planetRenderer.camera.position.set(0,-4, 0);
 
     </script>
 </html>

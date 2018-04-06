@@ -3,26 +3,13 @@
 
 #include <vector>
 #include <math.h>
+#include <fstream>
+
+#include "linearalgebra.h"
+
+using namespace la;
 
 namespace simulator {
-
-struct vec3 {
-    double x;
-    double y;
-    double z;
-
-    vec3();
-    vec3(double ix, double iy, double iz);
-
-    double sqrMagnitude();
-    double magnitude();
-    vec3 normal();
-
-    vec3 operator+(const vec3& other);
-    vec3 operator-(const vec3& other);
-    vec3 operator*(const double scalar);
-    vec3 operator/(const double scalar);
-};
 
 //Represents thrust vs time
 struct thrustcurve {
@@ -76,11 +63,15 @@ struct timeslice {
     double gravityForce;
     double dragForce;
     double thrustForce;
+    double dynamicPressure;
+    double altitude;
     vec3 position;
     vec3 velocity;
 };
 
 void simulate(double timestep, rocket rkt, planet body, std::vector<timeslice>& timeline);
+
+void formatOutput(std::string filename, std::vector<timeslice>& timeline);
 
 }
 

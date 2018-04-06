@@ -3,6 +3,8 @@ const path = require('path');
 const url = require('url');
 const $ = require("jquery");
 const rocketcore = require('./../build/Release/rocketcore.node');
+const fs = require('fs');
+const readline = require('readline');
 
 function Application(){
 
@@ -11,7 +13,10 @@ function Application(){
     };
 
     var pages = {
-        main: "index.html"
+        main: "simulator.html",
+        simulator: "simulator.html",
+        report: "report.html",
+        editor: "editor.html"
     }
 
     this.showDebugMenu = function(){
@@ -38,14 +43,61 @@ function Application(){
         };
     }
 
+    this.redirect = function(file, parameters){
+        windows.main.loadURL(url.format({
+            pathname: path.join(__dirname, "..", "pages", file),
+            protocol: 'file:',
+            slashes: true,
+            query: parameters
+        }))
+    }
+
+    this.loadReport = function(reportname){
+        this.redirect(pages.report, {file: reportname});
+    }
+
+    this.exportPDF = function(exporturl){
+        windows.main.webContents.printToPDF({}, (error, data) => {
+            if (error) 
+                throw error
+            fs.writeFile(exporturl, data, (error) => {
+                if (error) 
+                    throw error
+                console.log('Write PDF successfully.');
+            })
+        });
+    }
+
     this.quit = function(){
         electron.app.quit();
     }
 
+    //For storing app state
+    this.store = {};
+
     return this;
 }
 
+function getApp(){
+    return electron.remote.getGlobal('app');
+}
+
 function Page (){
+
+    this.extractParameters = function(){
+        var u = url.parse(window.location.href);
+        if (typeof u.query == 'string' || u.query instanceof String) {
+            var keyvaluepair = u.query.split("&");
+            var k = {};
+            for(var i = 0; i < keyvaluepair.length; i++){
+                var pair = keyvaluepair[i].split('=');
+                k[pair[0]] = decodeURIComponent(pair[1]);
+            }
+            return k;
+        }else{
+            return u.query;
+        }
+    }
 
     this.drawLineGraph = function(config){
         var base = {
@@ -69,6 +121,9 @@ function Page (){
         var el = base.el;
         var ctx = el.getContext("2d");
     
+        ctx.fillStyle = "#FFFFFF"
+        ctx.fillRect(0,0,el.width,el.height);
+
         //Get data
         ctx.beginPath();
         ctx.fillStyle = 'black';
@@ -104,7 +159,10 @@ function Page (){
                 if(y > maxy)
                     maxy = y;
             }
-            
+            //Add nice rounding to the max and min values
+            maxy = Math.sign(maxy) * Math.round(Math.abs(maxy));
+            miny = Math.sign(miny) * Math.round(Math.abs(miny));
+
             //Draw data
             var drawWidth = el.width - 25;
             var drawHeight = el.height - 25;
@@ -168,16 +226,34 @@ function Page (){
         
         //Title text
         ctx.textAlign = 'center'
-        ctx.fillText(base.title, el.width / 2 , 15);   
+        ctx.fillText(base.title, el.width / 2 , 15);  
+        ctx.save(); 
     };
 
     this.simulate = function(simdata){
+        if (!fs.existsSync('./results')){
+            fs.mkdirSync('./results');
+        }
+
         var output = rocketcore.simulate(simdata);
-        showModal("Simulation complete", "File saved to: " + output, true);
+        return output;
     };
+
+    this.openFile = function(path){
+        // Open a local file in the default app
+        electron.shell.openItem(path);
+    }
 
     this.browseFiles = function(filters){
         var filename = electron.remote.dialog.showOpenDialog({
+            filters: filters,
+            properties: ['openFile', 'multiSelections']
+        });
+        return filename;
+    };
+
+    this.saveFile = function(filters){
+        var filename = electron.remote.dialog.showSaveDialog({
             filters: filters,
             properties: ['openFile', 'multiSelections']
         });
@@ -195,4 +271,39 @@ function Page (){
     return this;
 }
 
-module.exports = { app: Application, page: Page }
+function files(){
+
+    this.readAll = function(file, fn){
+        fs.readFile(file, function (err, data) {
+            if (err) {
+                throw err;
+            }
+            var stringdata = data.toString();
+            if(fn)
+                fn(stringdata);
+        });
+    }
+
+    this.readByLine = function(file, lineFn, endfn){
+        var rd = readline.createInterface({
+            input: fs.createReadStream(file),
+            output: process.stdout,
+            console: false
+        });
+        
+        rd.on('line', function(line) {
+            if(lineFn)
+                lineFn(line);
+        });
+
+        rd.on('close', function(){
+            if(endfn)
+                endfn();
+        })
+    };
+
+    return this;
+}
+
+
+module.exports = { electron: electron, app: Application, page: Page, files: new files(), getApp: getApp };
