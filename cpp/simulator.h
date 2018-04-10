@@ -6,6 +6,7 @@
 #include <fstream>
 
 #include "linearalgebra.h"
+#include "physics.h"
 
 using namespace la;
 
@@ -35,6 +36,7 @@ struct rocket {
     double dragCoefficient;
     double crossSectionalArea;
     engine motor;
+    physics::rigidbody body;
 
     double mass(double t);
 };

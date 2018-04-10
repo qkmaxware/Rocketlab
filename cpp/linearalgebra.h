@@ -65,6 +65,26 @@ struct affine {
 
 };
 
+struct mat3 {
+
+    double values[9];
+
+    mat3();
+
+    double determinate();
+    mat3 inverse();
+
+    vec3 operator*(const vec3& v);
+
+    double& operator()(unsigned int r, unsigned int c);
+    double operator()(unsigned int r, unsigned int c) const;
+
+    mat3 operator+(const mat3& other);
+    mat3 operator-(const mat3& other);
+    mat3 operator*(double scalar);
+    mat3 operator/(double scalar);
+
+};
 
 }
 

@@ -10,7 +10,8 @@
                 "cpp/definition.cpp",
                 "cpp/simulator.cpp",
                 "cpp/nanconvert.cpp",
-                "cpp/linearalgebra.cpp"
+                "cpp/linearalgebra.cpp",
+                "cpp/physics.cpp"
             ]
         }
     ]

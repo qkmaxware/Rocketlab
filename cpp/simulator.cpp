@@ -95,8 +95,6 @@ void simulate(double timestep, rocket rkt, planet body, std::vector<timeslice>& 
     double timestamp = 0;
     double drag = rkt.dragCoefficient;
     double area = rkt.crossSectionalArea;
-    vec3 down = vec3(0, -1, 0);
-    vec3 up = vec3(0, 1 , 0);
 
     //Create initial stage
     timeslice start;
@@ -108,6 +106,9 @@ void simulate(double timestep, rocket rkt, planet body, std::vector<timeslice>& 
     start.dragForce = 0;
     start.altitude = 0;
     start.dynamicPressure = 0;
+
+    rkt.body.reset();
+    rkt.body.transform.position = start.position;
 
     timeline.push_back(start);
 

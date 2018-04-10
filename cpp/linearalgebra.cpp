@@ -7,26 +7,26 @@ vec3::vec3(): x(0), y(0), z(0){}
 
 vec3::vec3(double ix, double iy, double iz):x(ix), y(iy), z(iz){}
 
-double vec3::sqrMagnitude(){
+double vec3::sqrMagnitude() {
     return x*x + y*y + z*z;
 }
 
-double vec3::magnitude(){ 
+double vec3::magnitude() { 
     return sqrt(this->sqrMagnitude());
 }
 
-vec3 vec3::normal(){
+vec3 vec3::normal() {
     double m = this->magnitude();
     if(m == 0)
         return vec3();
     return vec3(this->x / m, this-> y / m, this->z / m);
 }
 
-double vec3::dot(const vec3& other){
+double vec3::dot(const vec3& other) {
     return x*other.x + y*other.y + z*other.z;
 }
 
-vec3 vec3::cross(const vec3& other){
+vec3 vec3::cross(const vec3& other) {
     return vec3(
         y * other.z - z * other.y,
         z * other.z - x * other.z,
@@ -34,7 +34,7 @@ vec3 vec3::cross(const vec3& other){
     );
 }
 
-double vec3::operator[](int i){
+double vec3::operator[](int i) {
     switch(i % 3){
         case 1:
             return y;
@@ -45,19 +45,19 @@ double vec3::operator[](int i){
     }
 }
 
-vec3 vec3::operator+(const vec3& other){
+vec3 vec3::operator+(const vec3& other) {
     return vec3(this->x + other.x, this->y + other.y, this->z + other.z);
 }
 
-vec3 vec3::operator-(const vec3& other){
+vec3 vec3::operator-(const vec3& other) {
     return vec3(this->x - other.x, this->y - other.y, this->z - other.z);
 }
 
-vec3 vec3::operator*(const double scalar){
+vec3 vec3::operator*(const double scalar) {
     return vec3(this->x * scalar, this->y * scalar, this->z * scalar);
 }
 
-vec3 vec3::operator/(const double scalar){
+vec3 vec3::operator/(const double scalar) {
     return vec3(this->x / scalar, this->y / scalar, this->z / scalar);
 }
 
@@ -172,6 +172,87 @@ vec3 affine::transformPoint(const vec3& other){
 
 vec3 affine::transformDirection(const vec3& other){
     return rotation * (other);
+}
+
+mat3::mat3() {
+    //Clear matrix
+    for(int i = 0; i < 9; i++){
+        values[i] = 0;
+    }
+}
+
+double mat3::determinate() {
+    mat3& m = *this;
+    return (m(0,0) * m(1,1) * m(2,2) + m(0,1) * m(1,2) * m(2,0) + m(0,2) * m(1,0) * m(2,1)) - 
+    (m(0,1) * m(1,0) * m(2,2) + m(0,0) * m(1,2) * m(2,1) + m(0,2) * m(1,1) * m(2,0));
+}
+
+mat3 mat3::inverse() {
+    double idet = 1.0 / (this->determinate());
+    mat3& m = *this;
+    
+    mat3 r;
+    r(0,0) = (m(1,1) * m(2,2) - m(1,2) * m(2,1))/idet;
+    r(0,1) = (m(0,2) * m(2,1) - m(0,1) * m(2,2))/idet;
+    r(0,2) = (m(0,1) * m(1,2) - m(0,2) * m(1,1))/idet;
+
+    r(1,0) = (m(1,2) * m(2,0) - m(1,0) * m(2,2))/idet;
+    r(1,1) = (m(0,0) * m(2,2) - m(0,2) * m(2,0))/idet;
+    r(1,2) = (m(0,2) * m(1,0) - m(0,0) * m(1,2))/idet;
+
+    r(2,0) = (m(1,0) * m(2,0) - m(1,1) * m(2,2))/idet;
+    r(2,1) = (m(0,1) * m(2,0) - m(0,0) * m(2,1))/idet;
+    r(2,2) = (m(0,0) * m(1,1) - m(0,1) * m(1,0))/idet;
+    return r;
+}
+
+vec3 mat3::operator*(const vec3& v) {
+   mat3& m = *this;
+   return vec3(
+        m(0,0) * v.x + m(0,1) * v.y + m(0,2) * v.z,
+        m(1,0) * v.x + m(1,1) * v.y + m(1,2) * v.z,
+        m(2,0) * v.x + m(2,1) * v.y + m(2,2) * v.z
+    );
+}
+
+double& mat3::operator()(unsigned int r, unsigned int c) {
+    return values[c + r * 3];
+}
+
+double mat3::operator()(unsigned int r, unsigned int c) const {
+    return values[c + r * 3];
+}
+
+mat3 mat3::operator+(const mat3& other) {
+    mat3 r;
+    for(int i = 0; i < 9; i++){
+        r.values[i] = values[i] + other.values[i];
+    }
+    return r;
+}
+
+mat3 mat3::operator-(const mat3& other) {
+    mat3 r;
+    for(int i = 0; i < 9; i++){
+        r.values[i] = values[i] - other.values[i];
+    }
+    return r;
+}
+
+mat3 mat3::operator*(double scalar){
+    mat3 r;
+    for(int i = 0; i < 9; i++){
+        r.values[i] = values[i] * scalar;
+    }
+    return r;
+}
+
+mat3 mat3::operator/(double scalar){
+    mat3 r;
+    for(int i = 0; i < 9; i++){
+        r.values[i] = values[i] / scalar;
+    }
+    return r;
 }
 
 }
