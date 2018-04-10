@@ -23,15 +23,18 @@ void invokeSimulation(const Nan::FunctionCallbackInfo<v8::Value>& info){
     //Convert js input into c++ equivalents   
     jsvalue argvalue = decodeV8(info[0]);
 
+    //Atmosphere def
     simulator::atmosphere atmo;
     atmo.surfaceDensity = 1.225;
     atmo.atmosphericRadius = 700;
 
+    //Earth def
     simulator::planet earth;
     earth.surfaceAcceleration = 9.8;
     earth.surfaceRadius = 6371000;
     earth.atmo = atmo;
     
+    //Engine thrustcurve def
     simulator::thrustcurve curve;
     std::vector<jsvalue> decoded_array = argvalue.object["motor"].object["thrustcurve"].array;
 
@@ -48,16 +51,21 @@ void invokeSimulation(const Nan::FunctionCallbackInfo<v8::Value>& info){
     curve.time = time;
     curve.thrust = thrust;
     
+    //Engine def
     simulator::engine motor;
     motor.totalMass = argvalue.object["motor"].object["totalWeight"].number;
     motor.propellantMass = argvalue.object["motor"].object["propellantWeight"].number;
     motor.ignitionDelay = argvalue.object["motor"].object["delay"].number;
     motor.thrust = curve;
     
+    //Rocket def
     simulator::rocket rkt;
     rkt.rocketMass = argvalue.object["rocket"].object["mass"].number;
     rkt.motor = motor;
-    
+    rkt.dragCoefficient = argvalue.object["rocket"].object["dragCoefficient"].number;
+    rkt.crossSectionalArea = argvalue.object["rocket"].object["crossSectionalArea"].number;
+
+    //Quality timestep
     double timestep = argvalue.object["quality"].object["timestep"].number;
     
     //Call fn

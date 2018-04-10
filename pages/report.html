@@ -124,9 +124,11 @@
     }
 
     function save(){
-        app.exportPDF(page.saveFile([
+        var file = page.saveFile([
             { name: 'Portable Document Format', extensions: ['pdf'] }
-        ]))
+        ]);
+        if(file)
+            app.exportPDF(file);
     }
 
     function loadCsv(f){

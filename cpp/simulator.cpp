@@ -93,8 +93,8 @@ void simulate(double timestep, rocket rkt, planet body, std::vector<timeslice>& 
     bool launched = false;
     bool grounded = true;
     double timestamp = 0;
-    double drag = 0;
-    double area = 0;
+    double drag = rkt.dragCoefficient;
+    double area = rkt.crossSectionalArea;
     vec3 down = vec3(0, -1, 0);
     vec3 up = vec3(0, 1 , 0);
 

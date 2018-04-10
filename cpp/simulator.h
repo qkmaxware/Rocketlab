@@ -32,6 +32,8 @@ struct engine {
 //Represents the rocket
 struct rocket {
     double rocketMass;
+    double dragCoefficient;
+    double crossSectionalArea;
     engine motor;
 
     double mass(double t);

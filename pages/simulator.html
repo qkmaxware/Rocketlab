@@ -45,6 +45,24 @@
                         </select>
                     </div>
                 </div>
+                <div class="w3-row-padding">
+                    <label>Cross sectional area</label></br>
+                    <div class="w3-half">
+                        <input class="w3-input w3-border" type="text" name="rocket-area" value="0" placeholder="cross sectional area">
+                    </div>
+                    <div class="w3-half">
+                        <select class="w3-select" name="rocket-area-unit">
+                            <option value="1">Square Meters (m^2)</option>
+                            <option value="0.0001">Square Centimeters (cm^2)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="w3-row-padding">
+                    <label>Coefficient of Drag</label></br>
+                    <div class="w3-full">
+                        <input class="w3-input w3-border" type="text" name="rocket-drag" value="0.5" placeholder="coefficient of drag">
+                    </div>
+                </div>
                 <br/>
             </div>
 
@@ -244,7 +262,9 @@
                 var simulation = {
                     name: "results/simulation_" + (new Date()).getTime()+".csv",
                     rocket: {
-                        mass: readFloat($("input[name=rocket-mass]").val(),$("select[name=rocket-mass-unit]").val(), "for rocket mass")
+                        mass: readFloat($("input[name=rocket-mass]").val(), $("select[name=rocket-mass-unit]").val(), "for rocket mass"),
+                        dragCoefficient: readFloat($("input[name=rocket-drag]").val(), "1", "for drag coefficient"),
+                        crossSectionalArea: readFloat($("input[name=rocket-area]").val(), $("select[name=rocket-area-unit]").val(), "for cross sectional area")
                     },
                     motor: {
                         diameter: readFloat($("input[name=diameter]").val(), "0.001"),
